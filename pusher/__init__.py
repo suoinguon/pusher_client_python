@@ -75,6 +75,12 @@ class Channel(object):
         if not channel_name_re.match(self.name):
             raise NameError("Invalid channel id: %s" % self.name)
         self.path = '/apps/%s/channels/%s/events' % (self.pusher.app_id, quote(self.name))
+        self.users_path = '/apps/%s/channels/%s/users' % (self.pusher.app_id, quote(self.name))
+
+    def members(self, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+        query_string = self.signed_query(event, '', socket_id)
+
+        status, resp_content = self.send_request(self.users_path, '', timeout=timeout)
 
     def trigger(self, event, data={}, socket_id=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         json_data = json.dumps(data, cls=self.pusher.encoder)
