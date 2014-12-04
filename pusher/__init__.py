@@ -79,8 +79,22 @@ class Channel(object):
 
     def members(self, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         query_string = self.signed_query(event, '', socket_id)
+        signed_path = "%s?%s" % (self.users_path, query_string)
 
-        status, resp_content = self.send_request(self.users_path, '', timeout=timeout)
+
+        status, resp_content = self.send_request(signed_path, '', timeout=timeout)
+
+        if status == 401:
+            raise AuthenticationError("Status: 401; Message: %s" % resp_content)
+        elif status == 404:
+            raise NotFoundError("Status: 404; Message: %s" % resp_content)
+        elif status == 403:
+            raise AppDisabledOrMessageQuotaError("Status: 403; Message: %s" % resp_content)
+        else:
+            raise UnexpectedReturnStatusError("Status: %s; Message: %s" % (status, resp_content))
+
+        return json.loads(resp_content)['users']
+
 
     def trigger(self, event, data={}, socket_id=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         json_data = json.dumps(data, cls=self.pusher.encoder)
